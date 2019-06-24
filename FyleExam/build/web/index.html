@@ -1,0 +1,154 @@
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <link href="bootstrap-3.3.7-dist/css/bootstrap.css" rel="stylesheet" type="text/css"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <style>
+            table > tbody > tr >td,table > thead > tr> td
+            {
+                font-size: 14px;
+            }
+        </style>
+        <script>
+            var jsonarray, jsonarraytemp;
+            function getAllBanks() {
+
+                var city = document.getElementById("city").value;
+                var xml = new XMLHttpRequest();
+
+                xml.onreadystatechange = function() {
+                    if (xml.readyState === 4 && xml.status === 200) {
+                        var res = xml.responseText.trim();
+
+                        jsonarray = JSON.parse(res);
+                        jsonarraytemp = jsonarray;
+                        drawTable(jsonarraytemp.length);
+                        document.getElementById("search").value = "";
+                        document.getElementById("pagesize").selectedIndex = "0";
+                    }
+
+                };
+                xml.open("GET", "https://vast-shore-74260.herokuapp.com/banks?city=" + city, true);
+                xml.setRequestHeader("Cache-Control","public");
+                xml.send();
+            }
+            function addToFav(id,n) {
+                if (typeof (Storage) !== "undefined") {
+                    localStorage.fav += "," + id + ",";
+                    drawTable(n);
+                }
+            }
+            function drawTable(n)
+            {
+                var ans = "<table class='table table-striped'>";
+
+                ans += "<thead class='bg-primary'> <tr><td>Favourite</td><td>IFSC</td><td>Bank Id</td><td>Branch</td><td>Address</td><td>City</td><td>District</td><td>State</td><td>Bank Name</td></tr>  </thead>";
+
+                ans += "<tbody>";
+
+                if (n < 0) {
+                    n = jsonarraytemp.length;
+                }
+
+                if (n > jsonarraytemp.length)
+                {
+                    n = jsonarraytemp.length;
+                }
+
+                for (var i = 0; i < n; i++)
+                {
+                    var js = jsonarraytemp[i];
+                    ans += "<tr>";
+
+                 
+                    if (localStorage.fav===undefined || localStorage.fav.indexOf("," + js["ifsc"] + ",") === -1)
+                    {
+                        ans += "<td>" + "<span style='font-size: 20px;' class='glyphicon glyphicon-star-empty' onclick=\"addToFav('" + js['ifsc'] + "',"+n+")\">" + "</td>";
+
+                    }
+                    else
+                    {
+                        ans += "<td>" + "<span style='font-size: 20px;' class='glyphicon glyphicon-star' >" + "</td>";
+
+                    }
+                    ans += "<td>" + js["ifsc"] + "</td>";
+                    ans += "<td>" + js["bank_id"] + "</td>";
+                    ans += "<td>" + js["branch"] + "</td>";
+                    ans += "<td>" + js["address"] + "</td>";
+                    ans += "<td>" + js["city"] + "</td>";
+                    ans += "<td>" + js["district"] + "</td>";
+                    ans += "<td>" + js["state"] + "</td>";
+                    ans += "<td>" + js["bank_name"] + "</td>";
+
+                    ans += "</tr>";
+
+
+                }
+                ans += "</tbody>";
+
+
+                ans += "</table>";
+                document.getElementById("maincontent").innerHTML = ans;
+
+            }
+
+            function bankFilter(value, n) {
+                if (value === "") {
+                    jsonarraytemp = jsonarray;
+                    drawTable(jsonarraytemp.length);
+                }
+                else {
+                    value = value.toUpperCase();
+                    jsonarraytemp = jsonarray.filter(function(obj) {
+                        return obj.ifsc.toUpperCase().startsWith(value) || obj.bank_id.toString().startsWith(value) || obj.branch.toUpperCase().startsWith(value)
+                                || obj.address.toUpperCase().startsWith(value) || obj.city.toUpperCase().startsWith(value) || obj.district.toUpperCase().startsWith(value)
+                                || obj.state.toUpperCase().startsWith(value) || obj.bank_name.toUpperCase().startsWith(value);
+                    });
+                    drawTable(n);
+                }
+            }
+        </script>
+    </head>
+    <body onload="getAllBanks();">
+
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-lg-6">
+                    <input class="form-control" id="search" placeholder="Enter a keyword to search:" onkeyup="bankFilter(this.value, -1)" type="text"/>
+                </div>
+                <div class="col-lg-4">
+                    <select class="form-control" id="city" onchange="getAllBanks()">
+                        <option value="BANGALORE">Bangalore</option>
+                        <option value="AMRITSAR">Amritsar</option>
+                        <option value="NEW DELHI">New Delhi</option>
+                        <option value="MUMBAI">Mumbai</option>
+                        <option value="AHMEDABAD">Ahmedabad</option>
+                    </select>
+                </div>
+                <div class="col-lg-2">
+                    <select id="pagesize" class="form-control" onchange="drawTable(this.value)">
+
+                        <option disabled selected>Select Page Size</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="30">30</option>
+                        <option value="-1">Show All</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-12">
+
+                    <div id="maincontent">
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </body>
+</html>
