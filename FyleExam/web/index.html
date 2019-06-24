@@ -31,7 +31,6 @@
 
                 };
                 xml.open("GET", "https://vast-shore-74260.herokuapp.com/banks?city=" + city, true);
-                xml.setRequestHeader("Cache-Control","public");
                 xml.send();
             }
             function addToFav(id,n) {
